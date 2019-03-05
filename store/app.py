@@ -2,46 +2,45 @@ from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
-products = [
+PRODUCTS = [
         {
             'id': 1,
-            'size': 7,
             'price': 99,
-            'country': 'Brazil'
+            'name': 'rice',
         },
         {
             'id': 2,
-            'size': 4,
             'price': 77,
-            'country': 'China'
+            'name': 'bean'
+
         },
         {
             'id': 3,
-            'size': 9,
             'price': 45,
-            'country': 'EUA'
+            'name': 'bread'
+
         }
 ]
 
 @app.route('/')
-@app.route('/api/v1/products')
-def home():
-    return jsonify(products)
+@app.route('/api/v1/products', methods=['GET'])
+def products():
+    return jsonify(PRODUCTS)
 
 
-@app.route('/api/v1/product/<int:product_id>')
-def get_product_id(product_id):
-    for product in products:
+@app.route('/api/v1/product/<int:product_id>', methods=['GET'])
+def get_product_by_id(product_id):
+    for product in PRODUCTS:
         if product['id'] == product_id:
-            return jsonify(products[product_id - 1]), 200
+            return jsonify(PRODUCTS[product_id - 1]), 200
     return jsonify({'Error':'Not Found'}), 404
 
 
 @app.route('/api/v1/product/<int:product_id>', methods=['PUT'])
-def change_country(product_id):
-    for product in products:
+def update_product(product_id):
+    for product in PRODUCTS:
         if product['id'] == product_id:
-            product['country'] = request.get_json().get('country')
+            product['name'] = request.get_json().get('name')
 
             return jsonify(product), 200
     return jsonify({'Error':'Product not found'})
@@ -49,25 +48,20 @@ def change_country(product_id):
 
 
 @app.route('/api/v1/products', methods=['POST'])
-def save_product():
+def add_product():
     data = request.get_json()
-    products.append(data)
+    PRODUCTS.append(data)
     return jsonify(data), 201
 
 
 @app.route('/api/v1/product/<int:product_id>', methods=['DELETE'])
-def remove_item(product_id):
-    for product in products:
+def remove_product(product_id):
+    for counter, product in enumerate(PRODUCTS):
         if product['id'] == product_id:
-            del products[product['id'] - 1]
-    return jsonify({'Message': 'Product was Deleted'})
+            del PRODUCTS[counter]
+            return jsonify({'Message': 'Product was Deleted'})
+    return jsonify({'Message': 'Page not found'}), 404
 
-
-#@app.route('/api/v1/product/<int:product_id>', methods=['DELETE'])
-#def remove_item(product_id):
-#   index = product_id - 1
-#    del products[index] 
-#    return jsonify({'Message': 'Product was Deleted'})
 
 
 if __name__ == '__main__':
