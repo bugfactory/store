@@ -32,7 +32,7 @@ def products():
 def get_product_by_id(product_id):
     for product in PRODUCTS:
         if product['id'] == product_id:
-            return jsonify(PRODUCTS[product_id - 1]), 200
+            return jsonify(product), 200
     return jsonify({'Error':'Not Found'}), 404
 
 
