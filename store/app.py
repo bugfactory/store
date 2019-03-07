@@ -1,68 +1,77 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 
 app = Flask(__name__)
 
-PRODUCTS = [
-        {
-            'id': 1,
-            'price': 99,
-            'name': 'rice',
-        },
-        {
-            'id': 2,
-            'price': 77,
-            'name': 'bean'
+stores = [
+    {
+        'name': 'My Store Portal',
+        'items': [
+            {
+                'name': 'My item',
+                'price': 17.99
 
-        },
-        {
-            'id': 3,
-            'price': 45,
-            'name': 'bread'
+            }
 
-        }
+        ]
+    }
+
 ]
 
 @app.route('/')
-@app.route('/api/v1/products', methods=['GET'])
-def products():
-    return jsonify(PRODUCTS)
+def home():
+    return render_template('index.html')
+
+# POST /store data:{name}
+@app.route('/store', methods=['POST'])
+def create_store():
+    request_data = request.get_json()
+    new_store = {
+        'name': request_data['name'],
+        'items': []
+    }
+    stores.append(new_store)
+    return jsonify(new_store)
+    
 
 
-@app.route('/api/v1/product/<int:product_id>', methods=['GET'])
-def get_product_by_id(product_id):
-    for product in PRODUCTS:
-        if product['id'] == product_id:
-            return jsonify(product), 200
-    return jsonify({'Error':'Not Found'}), 404
+# GET /store/<string:name>
+@app.route('/store/<string:name>')
+def get_store(name):
+    for store in stores:
+        if store['name'] == name:
+            return jsonify(store)
+    return jsonify({'Message': 'Store not found'})
+
+    
+#GET /store
+@app.route('/store/')
+def get_stores():
+    return jsonify({'stores': stores})
 
 
-@app.route('/api/v1/product/<int:product_id>', methods=['PUT'])
-def update_product(product_id):
-    for product in PRODUCTS:
-        if product['id'] == product_id:
-            product['name'] = request.get_json().get('name')
-
-            return jsonify(product), 200
-    return jsonify({'Error':'Product not found'})
-
-
-
-@app.route('/api/v1/products', methods=['POST'])
-def add_product():
-    data = request.get_json()
-    PRODUCTS.append(data)
-    return jsonify(data), 201
+# POST /store/<string:name>/item
+@app.route('/store/<string:name>/item', methods=['POST'])
+def create_item_in_store(name):
+    request_data = request.get_json()
+    for store in stores:
+        if store['name'] == name:
+            new_item = {
+                'name': request_data['name'], 
+                'price': request_data['price']
+            }
+            store['items'].append(new_item)
+            return jsonify(new_item)
+    return jsonify({'Message': 'Store not found'})
 
 
-@app.route('/api/v1/product/<int:product_id>', methods=['DELETE'])
-def remove_product(product_id):
-    for counter, product in enumerate(PRODUCTS):
-        if product['id'] == product_id:
-            del PRODUCTS[counter]
-            return jsonify({'Message': 'Product was Deleted'})
-    return jsonify({'Message': 'Page not found'}), 404
+# GET /store/<string:name>/item
+@app.route('/store/<string:name>/item')
+def get_items_in_store(name):
+    for store in stores:
+        if store['name'] == name:
+            return jsonify(store['items'])
+    return jsonify({'Message': 'Store not found'})
 
 
 
-if __name__ == '__main__':
-    app.run(debug=True)
+app.run(port=5000)
